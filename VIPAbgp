@@ -24,8 +24,8 @@
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
 
-ZEBRA=/usr/lib/quagga/zebra
-BGPD=/usr/lib/quagga/bgpd
+ZEBRA=/usr/sbin/zebra
+BGPD=/usr/sbin/bgpd
 VTYSH=/usr/bin/vtysh
 USAGE="usage: $0 {start|stop|status|monitor|validate-all|meta-data}";
 
@@ -76,9 +76,9 @@ Absolute path to the ripd binary.
 <actions>
 <action name="start"   timeout="20s" />
 <action name="stop"    timeout="20s" />
-<action name="monitor" depth="0"  timeout="20s" interval="5s" />
-<action name="validate-all"  timeout="20s" />
-<action name="meta-data"  timeout="5s" />
+<action name="monitor" depth="0"  timeout="10s" interval="5s" />
+<action name="validate-all"  timeout="10s" />
+<action name="meta-data"  timeout="10s" />
 </actions>
 </resource-agent>
 END
@@ -90,7 +90,7 @@ usage() {
 }
 
 start_ip() {
-    $VTYSH -c "conf t" -c "router bgp 8560" -c "network $OCF_RESKEY_ip"
+    (echo -e "conf t\nrouter bgp 65001\nnetwork $OCF_RESKEY_ip") | $VTYSH
     if [ $? -ne 0 ]; then
         return $OCF_ERR_ARGS
     fi
@@ -101,7 +101,7 @@ start_ip() {
 stop_ip() {
     status_ip
     if [ $? -eq $OCF_SUCCESS ]; then
-        $VTYSH -c "conf t" -c "router bgp 8560" -c "no network $OCF_RESKEY_ip"
+        (echo -e "conf t\nrouter bgp 65001\nno network $OCF_RESKEY_ip") | $VTYSH
         if [ $? -ne 0 ]; then
             return $OCF_ERR_ARGS
         else
